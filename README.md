@@ -8,13 +8,14 @@ Data collectors for quant. 数据收集、清洗和存储等功能。
 
 Dependencies:
 
-* python 3/2.7
 * pandas
 * tushare
 * PyMySQL
+* SQLAlchemy
 
 Changelog:
 
-Version 0.1 (开发中)：
+2016年12月?日，Version 0.1：
 
-* 自动收集、存储股票数据至MySQL数据库；
+* 初始化股票日线数据到MySQL数据库；
+* 盘后Linux系统自动收集、存储行情数据；

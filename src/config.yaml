@@ -1,0 +1,7 @@
+fetch:
+    source: 'tushare'
+valid:
+    valid: False
+store:
+    storage: 'hdf5'
+    db_uri: 'mysql+pymysql://data:password@localhost/stock?charset=utf8'
