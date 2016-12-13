@@ -19,4 +19,5 @@ LOG = {'ROOT_LEVEL': logging.INFO,
        'TO_FILE': False}
 
 STORAGE = {'TO_FILE': 'daily.h5',
-           'STOCK_FILE': 'stock_list.pkl'}
+           'STOCK_FILE': 'stock_list.pkl',
+           'TO_MARKET_FILE': 'to_market.pkl'}

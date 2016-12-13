@@ -24,7 +24,7 @@ from pandas.io.pytables import HDFStore
 
 from .logger import setup_logger
 from .config import NUM_THREADERS, OUT_PATH, STORAGE
-from .fetch import get_bars, get_stock_list
+from .fetch import get_bars, get_stock_info
 from .storage import HDFStorage
 
 logger = setup_logger()
@@ -80,11 +80,26 @@ def init_storage():
     """
     初始化存储系统，目前仅支持‘hdf5'
     """
-    stock_list = get_stock_list()['stock_list']
+    try:
+        stock_info = get_stock_info()
+        stock_list = stock_info['stock_list']
+        to_market = stock_info['to_market']
+    except Exception:
+        with open(os.path.join(OUT_PATH, STORAGE['STOCK_FILE']), 'rb') as fp:
+            stock_list = pickle.load(fp)
+        with open(os.path.join(OUT_PATH, STORAGE['TO_MARKET_FILE']), 'rb') as fp:
+            to_market = pickle.load(fp)
+
     data_list = []
+    saved_list = []
+
     def bars_list(symbol):
-        data_list.append(get_bars(symbol, start='', end=''))
+        time_int = to_market.loc[symbol, 'timeToMarket']
+        time_dt = datetime.datetime.strptime(str(time_int), '%Y%m%d')
+        time_str = datetime.datetime.strftime(time_dt, '%Y-%m-%d')
+        data_list.append(get_bars(symbol, start=time_str, end=''))
         logger.info(' '.join(['Fetch', symbol, 'Done!']))
+        saved_list.append(symbol)
 
     pool = ThreadPool(NUM_THREADERS)
     pool.map(bars_list, stock_list)
@@ -95,12 +110,28 @@ def init_storage():
         s.save()
         logger.info(' '.join(['Save', s.symbol, 'Done!']))
 
+    # 保存更新信息
     with HDFStore(os.path.join(OUT_PATH, STORAGE['TO_FILE'])) as store:
         store['meta_info'] = pd.Series({'last_try': datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
                                         'status': 'success'})
 
-    with open(os.path.join(OUT_PATH, STORAGE['STOCK_FILE']), 'wb') as fp:
-        pickle.dump(stock_list, fp)
+    # 保存股票列表和上市日期
+    if not os.path.isfile(os.path.join(OUT_PATH, STORAGE['STOCK_FILE'])):
+        with open(os.path.join(OUT_PATH, STORAGE['STOCK_FILE']), 'wb') as fp:
+            pickle.dump(stock_list, fp)
+
+    if not os.path.isfile(os.path.join(OUT_PATH, STORAGE['TO_MARKET_FILE'])):
+        with open(os.path.join(OUT_PATH, STORAGE['TO_MARKET_FILE']), 'wb') as fp:
+            pickle.dump(to_market, fp)
+
+    # 各种原因未更新保存的股票列表
+    failed_list = sorted(list(set(stock_list) - set(saved_list)))
+    if not failed_list:
+        logger.error('Failed %s stocks, check the failed.txt!') % str(len(failed_list))
+
+    with open(os.path.join(OUT_PATH, 'failed.txt'), 'w') as f:
+        for item in failed_list:
+            f.write('{}\n'.format(item))
 
 
 def sync_storage():
@@ -110,17 +141,19 @@ def sync_storage():
     with HDFStore(os.path.join(OUT_PATH, STORAGE['TO_FILE'])) as store:
         last_try = datetime.datetime.strptime(store['meta_info']['last_try'], '%Y-%m-%d %H:%M')
         status = store['meta_info']['status']
+
     if last_try.date() == datetime.datetime.now().date() and status == 'success':
         logger.info('Already the latest data!')
         return
 
-    try:
-        stock_list = get_stock_list()['stock_list']
-    except Exception:
+    if os.path.isfile(os.path.join(OUT_PATH, STORAGE['STOCK_FILE'])):
         with open(os.path.join(OUT_PATH, STORAGE['STOCK_FILE']), 'rb') as fp:
             stock_list = pickle.load(fp)
+    else:
+        stock_list = get_stock_info()['stock_list']
 
     data_list = []
+    saved_list = []
 
     def bars_list(symbol):
         data_list.append(get_bars(symbol, start=(last_try.date()+datetime.timedelta(days=1)).strftime('%Y-%m-%d')))
@@ -134,7 +167,19 @@ def sync_storage():
         s = HDFStorage(d, os.path.join(OUT_PATH, STORAGE['TO_FILE']))
         s.save()
         logger.info(' '.join(['Save', s.symbol, 'Done!']))
+        saved_list.append(s.symbol)
 
     with HDFStore(os.path.join(OUT_PATH, STORAGE['TO_FILE'])) as store:
         store['meta_info'] = pd.Series({'last_try': datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
                                         'status': 'success'})
+
+    # 各种原因未更新保存的股票列表
+    failed_list = sorted(list(set(stock_list) - set(saved_list)))
+    if not failed_list:
+        logger.error('Failed %s stocks, check the failed.txt!') % str(len(failed_list))
+
+    with open(os.path.join(OUT_PATH, 'failed.txt'), 'w') as f:
+        for item in failed_list:
+            f.write('{}\n'.format(item))
+
+

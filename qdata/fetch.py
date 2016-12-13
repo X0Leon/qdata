@@ -33,9 +33,13 @@ def get_bars(symbol, start='', end='', bar_type='D', index=False, retry_count=3,
     return {symbol: df}
 
 
-def get_stock_list():
+def get_stock_info():
     """
     返回沪深两市所有的股票列表
     """
     stock_info = ts.get_stock_basics()
-    return {'stock_list': sorted(list(stock_info.index))}
+    stock_info = stock_info[['timeToMarket']]
+    stock_info.index.name = 'symbol'
+
+    return {'stock_list': sorted(list(stock_info.index)),
+            'to_market': stock_info}
