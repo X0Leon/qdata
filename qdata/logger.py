@@ -4,7 +4,7 @@
 Log模块
 
 @author: X0Leon
-@version: 0.01
+@version: 0.1
 """
 
 import os
