@@ -10,12 +10,12 @@ Dependencies:
 
 * pandas
 * tushare
-* PyMySQL
-* SQLAlchemy
+* PyMySQL (optional)
+* SQLAlchemy (optional)
 
 Changelog:
 
 2016年12月?日，Version 0.1：
 
-* 初始化股票日线数据到MySQL数据库；
-* 盘后Linux系统自动收集、存储行情数据；
+* 初始化股票日线数据到HDF5文件系统；
+* 盘后自动收集、存储行情数据；

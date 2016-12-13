@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 
+"""
+数据获取模块
+
+@author: X0Leon
+@version: 0.01
+"""
+
 import tushare as ts
 import pandas as pd
 
 
-def get_bars(symbol=None, start='', end='', bar_type='D', index=False, retry_count=3, pause=0.001):
+def get_bars(symbol, start='', end='', bar_type='D', index=False, retry_count=3, pause=0.001):
     """
     对tushare库的get_k_data()函数浅封装，其使用腾讯财经数据
     参数：
@@ -19,14 +26,11 @@ def get_bars(symbol=None, start='', end='', bar_type='D', index=False, retry_cou
     DataFrame的字典，datetime、open、high、low、close、volume
 
     """
-    if symbol is None:
-        return
-    else:
-        df = ts.get_k_data(code=symbol, start=start, end=end, ktype=bar_type, autype='qfq',
-                           index=False, retry_count=retry_count, pause=pause)
-        df = df[['date', 'open', 'high', 'low', 'close', 'volume']].set_index('date')
-        df.index.name = 'datetime'
-        return {symbol: df}
+    df = ts.get_k_data(code=symbol, start=start, end=end, ktype=bar_type, autype='qfq',
+                       index=False, retry_count=retry_count, pause=pause)
+    df = df[['date', 'open', 'high', 'low', 'close', 'volume']].set_index('date')
+    df.index.name = 'datetime'
+    return {symbol: df}
 
 
 def get_stock_list():
@@ -34,5 +38,4 @@ def get_stock_list():
     返回沪深两市所有的股票列表
     """
     stock_info = ts.get_stock_basics()
-    return sorted(list(stock_info.index))
-
+    return {'stock_list': sorted(list(stock_info.index))}
