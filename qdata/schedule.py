@@ -95,8 +95,11 @@ def init_storage():
 
     def bars_list(symbol):
         time_int = to_market.loc[symbol, 'timeToMarket']
-        time_dt = datetime.datetime.strptime(str(time_int), '%Y%m%d')
-        time_str = datetime.datetime.strftime(time_dt, '%Y-%m-%d')
+        if len(str(time_int)) == 8:
+            time_dt = datetime.datetime.strptime(str(time_int), '%Y%m%d')
+            time_str = datetime.datetime.strftime(time_dt, '%Y-%m-%d')
+        else:
+            time_str = ''
         data_list.append(get_bars(symbol, start=time_str, end=''))
         logger.info(' '.join(['Fetch', symbol, 'Done!']))
         saved_list.append(symbol)
@@ -126,8 +129,7 @@ def init_storage():
 
     # 各种原因未更新保存的股票列表
     failed_list = sorted(list(set(stock_list) - set(saved_list)))
-    if not failed_list:
-        logger.error('Failed %s stocks, check the failed.txt!') % str(len(failed_list))
+    logger.error('Failed %s stocks, check the failed.txt!' % len(failed_list))
 
     with open(os.path.join(OUT_PATH, 'failed.txt'), 'w') as f:
         for item in failed_list:
@@ -175,11 +177,8 @@ def sync_storage():
 
     # 各种原因未更新保存的股票列表
     failed_list = sorted(list(set(stock_list) - set(saved_list)))
-    if not failed_list:
-        logger.error('Failed %s stocks, check the failed.txt!') % str(len(failed_list))
+    logger.error('Failed %s stocks, check the failed.txt!' % len(failed_list))
 
     with open(os.path.join(OUT_PATH, 'failed.txt'), 'w') as f:
         for item in failed_list:
             f.write('{}\n'.format(item))
-
-

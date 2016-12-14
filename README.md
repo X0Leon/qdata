@@ -19,3 +19,5 @@ Changelog:
 
 * 初始化股票日线数据到HDF5文件系统；
 * 盘后自动收集、存储行情数据；
+
+Author: X0Leon, pku09leon[@]gmail[dot]com, MIT LICENSE.
