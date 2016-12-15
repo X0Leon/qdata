@@ -142,6 +142,7 @@ def sync_storage():
     """
     with HDFStore(os.path.join(OUT_PATH, STORAGE['TO_FILE'])) as store:
         last_try = datetime.datetime.strptime(store['meta_info']['last_try'], '%Y-%m-%d %H:%M')
+        logger.info(' '.join(['Last try:', store['meta_info']['last_try']]))
         status = store['meta_info']['status']
 
     if last_try.date() == datetime.datetime.now().date() and status == 'success':
@@ -155,22 +156,31 @@ def sync_storage():
         stock_list = get_stock_info()['stock_list']
 
     data_list = []
+    empty_list = []
     saved_list = []
 
     def bars_list(symbol):
-        data_list.append(get_bars(symbol, start=(last_try.date()+datetime.timedelta(days=1)).strftime('%Y-%m-%d')))
+        bar = get_bars(symbol, start=(last_try.date()+datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
+        data_list.append(bar)
         logger.info(' '.join(['Fetch', symbol, 'Done!']))
+        if bar[symbol].empty:
+            empty_list.append(symbol)
+            logger.info(' '.join(['Warning:', symbol, 'noting new!']))
 
     pool = ThreadPool(NUM_THREADERS)
     pool.map(bars_list, stock_list)
     pool.wait_completion()
+
+    if len(empty_list) > len(stock_list) / 2:
+        logger.error('Cannot fetch new data! Try later or change data source?')
+        return
 
     for d in data_list:
         s = HDFStorage(d, os.path.join(OUT_PATH, STORAGE['TO_FILE']))
         s.save()
         logger.info(' '.join(['Save', s.symbol, 'Done!']))
         saved_list.append(s.symbol)
-
+    
     with HDFStore(os.path.join(OUT_PATH, STORAGE['TO_FILE'])) as store:
         store['meta_info'] = pd.Series({'last_try': datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
                                         'status': 'success'})
