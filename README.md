@@ -6,18 +6,22 @@ Data collectors for quant. 数据收集、清洗和存储等功能。
 
 项目roadmap、技术cheatsheet和API文档：[quant-data WIKI](https://github.com/X0Leon/quant-data/wiki)。
 
-Dependencies:
+阶段I：专注于高频数据(tick)的收集、存储和再加工（如计算分钟bar）。
+
+# Dependencies:
 
 * pandas
 * tushare
-* PyMySQL (optional)
-* SQLAlchemy (optional)
+* requests (optional)
 
-Changelog:
+# Changelog:
+
+2017年01月17日，Version 0.2:
+
+* 高频tick数据，及转化为各类bar数据的功能；
 
 2016年12月13日，Version 0.1：
 
-* 初始化股票日线数据到HDF5文件系统；
-* 盘后自动收集、存储行情数据；
+* 多线程收集股票日线数据到HDF5文件系统；
 
-Author: X0Leon, pku09leon[@]gmail[dot]com, MIT LICENSE.
+Author: X0Leon (Leon Zhang), pku09leon[@]gmail[dot]com.
