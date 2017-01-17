@@ -20,7 +20,7 @@ from .fetch import get_ticks_tushare, get_stock_info, get_auth_factor
 from .utils import hdf_keys
 
 import warnings
-#warnings.filterwarnings('ignore')
+warnings.filterwarnings('ignore')
 
 
 OUT_PATH = os.path.join(os.path.dirname(__file__), 'out')
@@ -132,7 +132,7 @@ def storage(path=OUT_PATH, stock_list=None, start='2006-01-01', end='2007-01-01'
     def auth_factor(symbol):
         new_start = start
         if flag == 'update':
-            nearest_dt = pd.read_hdf(factor_filename, key=symbol).index[-1].date()
+            nearest_dt = pd.read_hdf(factor_filename, key=symbol).index[-1]
             if nearest_dt >= start_dt:
                 if auto:
                     new_start = (nearest_dt + datetime.timedelta(days=1)).strftime("%Y-%m-%d")

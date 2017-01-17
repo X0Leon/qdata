@@ -8,13 +8,13 @@ Data collectors for quant. 数据收集、清洗和存储等功能。
 
 阶段I：专注于高频数据(tick)的收集、存储和再加工（如计算分钟bar）。
 
-# Dependencies:
+## Dependencies:
 
 * pandas
 * tushare
 * requests (optional)
 
-# Changelog:
+## Changelog:
 
 2017年01月17日，Version 0.2:
 
